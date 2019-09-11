@@ -2,12 +2,12 @@
 from flask import Flask,render_template, request, redirect, url_for
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database_setup import User, Base
+from database_setup import User, Base, Word, SavedWord
 from flask import session as login_session
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 from flask import make_response
-import random, string, httplib2, json, requests
+import random, string, httplib2, json, requests, time
 
 #Api Credentials
 CLIENT_ID = json.loads(
@@ -250,7 +250,8 @@ def success():
 
 #Create User Python Helper
 def createUser(login_session):
-    newUser = User(name = login_session['username'], email=login_session['email'],picture = login_session['picture'])
+    seconds = time.time()
+    newUser = User(name = login_session['username'], email=login_session['email'],picture = login_session['picture'], time = seconds)
     session.add(newUser)
     session.commit()
     user = session.query(User).filter_by(email = login_session['email']).one()
@@ -269,7 +270,57 @@ def getUserID(email):
     except:
         return None    
 
-#Main
+#Index Page for public and logged in user
+@app.route('/')
+@app.route('/home')
+def home():
+    rand = random.randrange(1,80)
+    print(rand)
+    words = session.query(Word).limit(5).offset(rand)
+    if 'username' not in login_session:
+        return render_template('publicindex.html',WORD = words)
+    else:
+        print login_session['user_id']
+        return render_template('index.html',user_id = login_session['user_id'], WORD = words)    
+
+#Add Word
+@app.route('/add/<int:user_id>/<int:word_id>', methods = ['GET', 'POST'])
+def addWord(user_id,word_id):
+    if 'username' in login_session and user_id == login_session['user_id']:
+        if request.method == 'POST':
+            savedWord = SavedWord(user_id = user_id, word_id = word_id)
+            session.add(savedWord)
+            session.commit()
+            return redirect(url_for('displayWord',user_id = user_id))
+        else:
+            return render_template('addWord.html',user_id = user_id, word_id = word_id)  
+    else:
+        return "You are not autherized for this action"
+
+#Display Word
+@app.route('/display/<int:user_id>/')
+def displayWord(user_id):
+    if 'username' in login_session and user_id == login_session['user_id']:
+        words = session.query(SavedWord).filter_by(user_id = user_id)
+        return render_template('displayWord.html', WORD = words, user_id = user_id)
+    else:
+        return "You are not autherized to view this page"
+
+#Delete Word
+@app.route('/delete/<int:user_id>/<int:word_id>', methods = ['GET', 'POST'])
+def deleteWord(user_id,word_id):
+    if 'username' in login_session and user_id == login_sesison['user_id']:
+        if request.method == 'POST':
+            word = session.query(SavedWord).filter_by(user_id = user_id, word_id = word_id).one()
+            session.delete(word)
+            session.commit()
+            return redirect(url_for('displayWord', user_id = user_id))
+        else:
+            return render_template('deleteWord.html', user_id = user_id, word_id = word_id)
+    else:
+        return "You are not autherized for this action"            
+
+#Main Method
 if __name__ == '__main__':
     #Need to change this code
     app.secret_key = 'super_secret_key'
