@@ -1,0 +1,56 @@
+<html>
+    <head>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <ul></ul>
+            {% for word in WORD %}
+            <script>
+                    $.getJSON('https://googledictionaryapi.eu-gb.mybluemix.net/?define={{word.word}}&lang=en', function (data) {
+                        $('ul').append('<li><h1>{{word.word}}</h1></li>');
+                        console.log(data);
+                        verb = data[0].meaning.verb;
+                        if (verb) {
+                            for(var i =0;i<verb.length;i++){
+                                $('ul').append('<li>verb</li>')
+                                $('ul').append('<li>' + verb[i].definition + '</li>')
+                                if(verb[i].example){
+                                    $('ul').append('<li>' + verb[i].example + '</li>')
+                                }
+                            }   
+                        }
+                        noun = data[0].meaning.noun;
+                        if (noun) {
+                            for (var i = 0; i < noun.length; i++) {
+                                $('ul').append('<li>noun</li>')
+                                $('ul').append('<li>' + noun[i].definition + '</li>')
+                                if(noun[i].example){
+                                    $('ul').append('<li>' + noun[i].example + '</li>')
+                                }
+                            }
+                        }
+                        adjective = data[0].meaning.adjective;
+                        if(adjective){
+                            for(var i =0;i<adjective.length;i++){
+                                $('ul').append('<li>Adjective</li>')
+                                $('ul').append('<li>' + adjective[i].definition + '</li>')
+                                if(adjective[i].example){
+                                    $('ul').append('<li>' + adjective[i].example + '</li>')
+                                }
+                            }
+                        }
+                        tverb = data[0].meaning["transitive verb"];
+                        if(tverb){
+                            for(var i =0;i<tverb.length;i++){
+                                $('ul').append('<li>Transitive verb</li>')
+                                $('ul').append('<li>' + tverb[i].definition + '</li>')
+                                if(tverb[i].example){
+                                    $('ul').append('<li>' + tverb[i].example + '</li>')
+                                }
+                            }
+                        }
+                    });
+            </script>
+            {% endfor %}
+    </body>
+</html>

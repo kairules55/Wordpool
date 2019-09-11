@@ -1,0 +1,11 @@
+<html>
+    <body>
+        <h1>
+            Are you sure you want to delete the word?
+        </h1>
+        <form action="{{url_for('deleteWord', user_id = user_id, word_id = word_id)}}" method = 'post'>
+            <input type = 'submit' value = 'Yes'>
+        </form>
+        <a href="{{url_for('displayWord', user_id = user_id)}}"> No </a>
+    </body>
+</html>
