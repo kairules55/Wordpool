@@ -5,17 +5,20 @@
 </head>
 
 <body>
+    <ul></ul>
     {% for word in WORD %}
     <script>
-        var wordUrl =  'https://googledictionaryapi.eu-gb.mybluemix.net/?define={{word.word}}&lang=en';
+        var wordUrl =  'https://googledictionaryapi.eu-gb.mybluemix.net/?define={{word.word.word}}&lang=en';
         $.ajax({
             url: wordUrl,
-            dataType: 'jsonp',
-            success: function(data){
-                $('ul').append('<li><h1>{{word.word}}</h1></li>');
-            console.log(data);
+            dataType: "json",
+            crossDomain: true,   
+            success: function(response){
+            data = response[0];
+            console.log(data)
+            $('ul').append('<li><h1>{{word.word.word}}</h1></li>');
             console.log('{{word.id}}');
-            verb = data[0].meaning.verb;
+            verb = data.meaning.verb;
             if (verb) {
                 for (var i = 0; i < verb.length; i++) {
                     $('ul').append('<li>verb</li>');
@@ -25,7 +28,7 @@
                     }
                 }
             }
-            noun = data[0].meaning.noun;
+            noun = data.meaning.noun;
             if (noun) {
                 for (var i = 0; i < noun.length; i++) {
                     $('ul').append('<li>noun</li>');
@@ -35,7 +38,7 @@
                     }
                 }
             }
-            adjective = data[0].meaning.adjective;
+            adjective = data.meaning.adjective;
             if (adjective) {
                 for (var i = 0; i < adjective.length; i++) {
                     $('ul').append('<li>Adjective</li>');
@@ -45,7 +48,7 @@
                     }
                 }
             }
-            tverb = data[0].meaning["transitive verb"];
+            tverb = data.meaning["transitive verb"];
             if (tverb) {
                 for (var i = 0; i < tverb.length; i++) {
                     $('ul').append('<li>Transitive verb</li>');

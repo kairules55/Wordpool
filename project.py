@@ -1,5 +1,6 @@
 #Imports 
-from flask import Flask,render_template, request, redirect, url_for
+from flask import Flask,render_template, request, redirect, url_for, jsonify
+from flask_cors import CORS, cross_origin
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import User, Base, Word, SavedWord
@@ -25,6 +26,7 @@ session = DBSession()
 
 #Create Flask App
 app = Flask(__name__)
+CORS(app, support_credentials=True)
 
 #Login Route
 @app.route('/login')
@@ -239,6 +241,8 @@ def disconnect():
 #Success Route
 @app.route('/success')
 def success():
+    DBSession = sessionmaker(bind = engine)
+    session = DBSession()
     if 'username' in login_session:
         email = login_session['email']
         id = getUserID(email)
@@ -250,6 +254,8 @@ def success():
 
 #Create User Python Helper
 def createUser(login_session):
+    DBSession = sessionmaker(bind = engine)
+    session = DBSession()
     seconds = time.time()
     newUser = User(name = login_session['username'], email=login_session['email'],picture = login_session['picture'], time = seconds)
     session.add(newUser)
@@ -259,11 +265,15 @@ def createUser(login_session):
 
 #Get User Info
 def getUserInfo(user_id):
+    DBSession = sessionmaker(bind = engine)
+    session = DBSession()
     user = session.query(User).filter_by(id=user_id).one()
     return user
 
 #Check User
 def getUserID(email):
+    DBSession = sessionmaker(bind = engine)
+    session = DBSession()
     try:
         user = session.query(User).filter_by(email = email).one()
         return user.id
@@ -274,9 +284,16 @@ def getUserID(email):
 @app.route('/')
 @app.route('/home')
 def home():
+    DBSession = sessionmaker(bind = engine)
+    session = DBSession()
     rand = random.randrange(1,80)
     print(rand)
     words = session.query(Word).limit(5).offset(rand)
+    print(words)
+    for word in words:
+        print(word)
+        print(word.word)
+
     if 'username' not in login_session:
         return render_template('publicindex.html',WORD = words)
     else:
@@ -286,6 +303,8 @@ def home():
 #Add Word
 @app.route('/add/<int:user_id>/<int:word_id>', methods = ['GET', 'POST'])
 def addWord(user_id,word_id):
+    DBSession = sessionmaker(bind = engine)
+    session = DBSession()
     if 'username' in login_session and user_id == login_session['user_id']:
         if request.method == 'POST':
             savedWord = SavedWord(user_id = user_id, word_id = word_id)
@@ -300,6 +319,8 @@ def addWord(user_id,word_id):
 #Display Word
 @app.route('/display/<int:user_id>/')
 def displayWord(user_id):
+    DBSession = sessionmaker(bind = engine)
+    session = DBSession()
     if 'username' in login_session and user_id == login_session['user_id']:
         words = session.query(SavedWord).filter_by(user_id = user_id)
         return render_template('displayWord.html', WORD = words, user_id = user_id)
@@ -309,6 +330,8 @@ def displayWord(user_id):
 #Delete Word
 @app.route('/delete/<int:user_id>/<int:word_id>', methods = ['GET', 'POST'])
 def deleteWord(user_id,word_id):
+    DBSession = sessionmaker(bind = engine)
+    session = DBSession()
     if 'username' in login_session and user_id == login_sesison['user_id']:
         if request.method == 'POST':
             word = session.query(SavedWord).filter_by(user_id = user_id, word_id = word_id).one()

@@ -5,6 +5,7 @@
         <p>Email : {{USER.email}}</p>
         <img src={{USER.picture}}>
         <script>
+            console.log('{{USER.picture}}')
             setTimeout(function() {
               window.location.href = "/home";
              }, 4000);
